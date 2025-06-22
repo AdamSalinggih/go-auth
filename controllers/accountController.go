@@ -4,33 +4,44 @@ import (
 	"github.com/adamhaiqal/go-auth/initializers"
 	"github.com/adamhaiqal/go-auth/models"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
-var validate = validator.New()
-
 func AccountCreate(c *gin.Context) {
-	var account models.Account
-
-	// Bind JSON and validate
-	if err := c.BindJSON(&account); err != nil {
-		c.JSON(400, gin.H{"error": "Invalid input"})
-		return
+	var account struct {
+		FirstName string
+		LastName  string
+		Email     string
+		Address   string
+		Phone     string
+		StateCode string
+		ZipCode   string
+		Country   string
 	}
-	if err := validate.Struct(account); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
+
+	c.Bind(&account)
+
+	accountUpdate := models.Account{
+		FirstName: account.FirstName,
+		LastName:  account.LastName,
+		Email:     account.Email,
+		Address:   account.Address,
+		Phone:     account.Phone,
+		StateCode: account.StateCode,
+		ZipCode:   account.ZipCode,
+		Country:   account.Country,
 	}
 
-	result := initializers.DB.Create(&account)
+	result := initializers.DB.Create(&accountUpdate)
 	if result.Error != nil {
+		c.Status(400)
 		c.JSON(400, gin.H{"error": result.Error.Error()})
 		return
 	}
+
 	c.JSON(200, gin.H{
-		"accountID": account.ID,
-		"status":    "Success",
-		"message":   "Account successfully created",
+		"data":    account,
+		"status":  "Success",
+		"message": "Account successfully created",
 	})
 }
 
