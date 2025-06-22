@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/adamhaiqal/go-auth/controllers"
 	"github.com/adamhaiqal/go-auth/initializers"
 	"github.com/gin-gonic/gin"
 )
@@ -12,10 +13,8 @@ func init() {
 }
 func main() {
 	router := gin.Default()
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "LOL, it works!",
-		})
-	})
+	router.POST("/account/create", controllers.AccountCreate)
+	router.GET("/account/get/:id", controllers.AccountGet)
+	router.PUT("/account/update/:id", controllers.AccountUpdate)
 	router.Run() // listen and serve on 0.0.0.0:8080
 }
