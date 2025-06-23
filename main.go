@@ -17,5 +17,6 @@ func main() {
 	router.GET("/account/get/:id", controllers.AccountGet)
 	router.PUT("/account/update/:id", controllers.AccountUpdate)
 	router.DELETE("/account/delete/:id", controllers.AccountDelete)
+	router.POST("/account/signup", controllers.AccountAuthSignup)
 	router.Run() // listen and serve on 0.0.0.0:8080
 }
