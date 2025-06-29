@@ -7,16 +7,15 @@ import (
 )
 
 func init() {
-	// Load environment variables and connect to the database
 	initializers.LoadEnvVariables()
 	initializers.ConnectToDatabase()
 }
+
 func main() {
 	router := gin.Default()
-	router.POST("/account/create", controllers.AccountCreate)
-	router.GET("/account/get/:id", controllers.AccountGet)
-	router.PUT("/account/update/:id", controllers.AccountUpdate)
-	router.DELETE("/account/delete/:id", controllers.AccountDelete)
-	router.POST("/account/signup", controllers.AccountAuthSignup)
-	router.Run() // listen and serve on 0.0.0.0:8080
+	router.POST("api/v1/account/create", controllers.AccountCreate)
+	//router.GET("api/v1/account/get/:id", controllers.AccountGet)
+	//router.PUT("api/v1/account/update/:id", controllers.AccountUpdate)
+	//router.DELETE("api/v1/account/delete/:id", controllers.AccountDelete)
+	router.Run()
 }
