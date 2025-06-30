@@ -14,7 +14,7 @@ func init() {
 func main() {
 	router := gin.Default()
 	router.POST("api/v1/account/create", controllers.AccountCreate)
-	//router.GET("api/v1/account/get/:id", controllers.AccountGet)
+	router.GET("api/v1/account/get/:id", controllers.AccountGet)
 	//router.PUT("api/v1/account/update/:id", controllers.AccountUpdate)
 	//router.DELETE("api/v1/account/delete/:id", controllers.AccountDelete)
 	router.Run()
