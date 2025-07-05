@@ -13,9 +13,17 @@ func init() {
 
 func main() {
 	router := gin.Default()
-	router.POST("api/v1/account/create", controllers.AccountCreate)
-	router.GET("api/v1/account/get/:id", controllers.AccountGet)
-	//router.PUT("api/v1/account/update/:id", controllers.AccountUpdate)
-	//router.DELETE("api/v1/account/delete/:id", controllers.AccountDelete)
+	router.LoadHTMLGlob("templates/*")
+
+	router.GET("/", controllers.Welcome)
+
+	api := router.Group("/api/v1/account")
+	{
+		api.POST("/create", controllers.AccountCreate)
+		api.GET("/get/:id", controllers.AccountGet)
+		api.PUT("/update/:id", controllers.AccountUpdate)
+		api.DELETE("/delete/:id", controllers.AccountDelete)
+	}
+
 	router.Run()
 }
