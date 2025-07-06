@@ -95,5 +95,7 @@ func AccountDelete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Account deleted successfully"})
+	c.JSON(200, gin.H{
+		"accountId": account.ID,
+		"message":   "Account deleted successfully"})
 }
