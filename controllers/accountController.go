@@ -6,6 +6,7 @@ import (
 	"github.com/adamhaiqal/go-auth/initializers"
 	"github.com/adamhaiqal/go-auth/models"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,6 +32,15 @@ func AccountCreate(c *gin.Context) {
 		return
 	}
 	account.Password = string(hashedPassword)
+
+	validator := validator.New()
+	err = validator.Struct(account)
+	if err != nil {
+		// If validation fails, return a 400 error with the validation error
+		c.JSON(400, gin.H{"error": "Validation failed", "details": err.Error()})
+		return
+
+	}
 
 	if err := initializers.DB.Create(&account).Error; err != nil {
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
