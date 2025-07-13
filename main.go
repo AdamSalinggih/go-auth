@@ -19,8 +19,6 @@ func main() {
 		"admin": "admin123",
 	}
 
-	router.GET("/", controllers.Welcome)
-
 	api := router.Group("/api/v1/account", gin.BasicAuth(accounts))
 	{
 		api.POST("/create", controllers.AccountCreate)

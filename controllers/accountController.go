@@ -10,12 +10,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func Welcome(c *gin.Context) {
-	c.HTML(200, "welcome.html", gin.H{
-		"title": "Welcome to Go Auth",
-	})
-}
-
 func AccountCreate(c *gin.Context) {
 
 	var account models.Account
