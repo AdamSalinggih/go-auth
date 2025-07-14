@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"strings"
-
 	"github.com/adamhaiqal/go-auth/initializers"
 	"github.com/adamhaiqal/go-auth/models"
 	"github.com/gin-gonic/gin"
@@ -10,96 +8,86 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func AccountCreate(c *gin.Context) {
-
+func AccountSignup(c *gin.Context) {
 	var account models.Account
 
+	// Bind JSON request
 	err := c.BindJSON(&account)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid input"})
+		c.JSON(400, gin.H{"error": "Invalid JSON input"})
 		return
 	}
 
+	// Validate input using validator
+	validate := validator.New()
+	if err := validate.Struct(account); err != nil {
+		c.JSON(400, gin.H{"error": "Validation failed", "details": err.Error()})
+		return
+	}
+
+	// Check if username already exists
+	var existingAccount models.Account
+	if err := initializers.DB.Where("username = ?", account.Username).First(&existingAccount).Error; err == nil {
+		c.JSON(400, gin.H{"error": "Username already exists"})
+		return
+	}
+
+	// Check if email already exists
+	if err := initializers.DB.Where("email = ?", account.Email).First(&existingAccount).Error; err == nil {
+		c.JSON(400, gin.H{"error": "Email already exists"})
+		return
+	}
+
+	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Failed to hash password"})
+		c.JSON(500, gin.H{"error": "Failed to process password"})
 		return
 	}
 	account.Password = string(hashedPassword)
 
-	validator := validator.New()
-	err = validator.Struct(account)
-	if err != nil {
-		// If validation fails, return a 400 error with the validation error
-		c.JSON(400, gin.H{"error": "Validation failed", "details": err.Error()})
-		return
+	// Set default values
+	account.IsVerified = false
 
-	}
-
+	// Create account
 	if err := initializers.DB.Create(&account).Error; err != nil {
-		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-			c.JSON(400, gin.H{"error": "Username already exists"})
-			return
-		}
-		c.JSON(400, gin.H{"error": "Failed to create account", "details": err.Error()})
+		c.JSON(500, gin.H{"error": "Failed to create account"})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Account created successfully", "accountId": account.ID, "username": account.Username})
+	// Return success response (without sensitive data)
+	c.JSON(201, gin.H{
+		"message":  "Account created successfully",
+		"username": account.Username,
+		"email":    account.Email,
+	})
 }
 
-func AccountGet(c *gin.Context) {
+func AccountSignin(c *gin.Context) {
+	var signinRequest struct {
+		Username string `json:"username" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+
+	// Bind JSON request
+	if err := c.BindJSON(&signinRequest); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	// Find account by username
 	var account models.Account
-
-	id := c.Param("id")
-
-	if err := initializers.DB.First(&account, id).Error; err != nil {
+	if err := initializers.DB.Where("username = ?", signinRequest.Username).First(&account).Error; err != nil {
 		c.JSON(404, gin.H{"error": "Account not found"})
 		return
 	}
 
-	c.JSON(200, gin.H{"account": account})
-}
-
-func AccountUpdate(c *gin.Context) {
-	var account models.Account
-
-	id := c.Param("id")
-
-	if err := initializers.DB.First(&account, id).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Account not found"})
+	// Verify password
+	if err := bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(signinRequest.Password)); err != nil {
+		c.JSON(401, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	if err := c.BindJSON(&account); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	if err := initializers.DB.Save(&account).Error; err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(200, gin.H{"message": "Account updated successfully", "account": account})
-}
-
-func AccountDelete(c *gin.Context) {
-	var account models.Account
-
-	id := c.Param("id")
-
-	if err := initializers.DB.First(&account, id).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Account not found"})
-		return
-	}
-
-	if err := initializers.DB.Unscoped().Delete(&account).Error; err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(200, gin.H{
-		"accountId": account.ID,
-		"message":   "Account deleted successfully"})
+	// Return success response
+	c.JSON(200, gin.H{"message": "Signin successful"})
 }

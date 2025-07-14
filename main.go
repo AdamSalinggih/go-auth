@@ -13,7 +13,6 @@ func init() {
 
 func main() {
 	router := gin.Default()
-	router.LoadHTMLGlob("templates/*")
 	// Set up BasicAuth credentials using a map
 	accounts := gin.Accounts{
 		"admin": "admin123",
@@ -21,10 +20,8 @@ func main() {
 
 	api := router.Group("/api/v1/account", gin.BasicAuth(accounts))
 	{
-		api.POST("/create", controllers.AccountCreate)
-		api.GET("/get/:id", controllers.AccountGet)
-		api.PUT("/update/:id", controllers.AccountUpdate)
-		api.DELETE("/delete/:id", controllers.AccountDelete)
+		api.POST("/signup", controllers.AccountSignup)
+		api.POST("/signin/:id", controllers.AccountSignin)
 	}
 
 	router.Run()
