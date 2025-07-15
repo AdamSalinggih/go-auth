@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/adamhaiqal/go-auth/initializers"
 	"github.com/adamhaiqal/go-auth/models"
 	"github.com/gin-gonic/gin"
@@ -87,6 +89,24 @@ func AccountSignin(c *gin.Context) {
 		c.JSON(401, gin.H{"error": "Invalid credentials"})
 		return
 	}
+
+	fmt.Println("After password verification, setting cookie")
+
+	//generate JWT token
+	//token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	//	"username": account.Username,
+	//	"email":    account.Email,
+	//})
+
+	//tokenString, err := token.SignedString([]byte(os.Getenv("SIGNIN_KEY"))) // Replace with your secret key
+
+	//if err != nil {
+	//	c.JSON(500, gin.H{"error": "Failed to generate token"})
+	//	return
+	//}
+	//
+	//c.SetSameSite(http.SameSiteLaxMode)
+	//c.SetCookie("token", tokenString, 3600, "", "", false, true)
 
 	// Return success response
 	c.JSON(200, gin.H{"message": "Signin successful"})
