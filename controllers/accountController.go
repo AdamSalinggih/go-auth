@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/adamhaiqal/go-auth/initializers"
+	"github.com/adamhaiqal/go-auth/config"
 	"github.com/adamhaiqal/go-auth/models"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -29,12 +29,12 @@ func AccountSignup(c *gin.Context) {
 	}
 
 	var existingAccount models.Account
-	if err := initializers.DB.Where("username = ?", account.Username).First(&existingAccount).Error; err == nil {
+	if err := config.DB.Where("username = ?", account.Username).First(&existingAccount).Error; err == nil {
 		c.JSON(400, gin.H{"error": "Username already exists"})
 		return
 	}
 
-	if err := initializers.DB.Where("email = ?", account.Email).First(&existingAccount).Error; err == nil {
+	if err := config.DB.Where("email = ?", account.Email).First(&existingAccount).Error; err == nil {
 		c.JSON(400, gin.H{"error": "Email already exists"})
 		return
 	}
@@ -48,7 +48,7 @@ func AccountSignup(c *gin.Context) {
 
 	account.IsVerified = false
 
-	if err := initializers.DB.Create(&account).Error; err != nil {
+	if err := config.DB.Create(&account).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Failed to create account"})
 		return
 	}
@@ -72,7 +72,7 @@ func AccountSignin(c *gin.Context) {
 	}
 
 	var account models.Account
-	if err := initializers.DB.Where("username = ?", signinRequest.Username).First(&account).Error; err != nil {
+	if err := config.DB.Where("username = ?", signinRequest.Username).First(&account).Error; err != nil {
 		c.JSON(404, gin.H{"error": "Account not found"})
 		return
 	}

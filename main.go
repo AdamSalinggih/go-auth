@@ -1,14 +1,14 @@
 package main
 
 import (
+	"github.com/adamhaiqal/go-auth/config"
 	"github.com/adamhaiqal/go-auth/controllers"
-	"github.com/adamhaiqal/go-auth/initializers"
 	"github.com/gin-gonic/gin"
 )
 
 func init() {
-	initializers.LoadEnvVariables()
-	initializers.ConnectToDatabase()
+	config.LoadEnvVariables()
+	config.ConnectToDatabase()
 }
 
 func main() {

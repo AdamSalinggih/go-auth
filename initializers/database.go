@@ -1,7 +1,6 @@
-package initializers
+package config
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -15,12 +14,15 @@ func ConnectToDatabase() *gorm.DB {
 	var err error
 
 	postgresURL := os.Getenv("DATABASE_URL")
-	fmt.Print("Connecting to database at: ", postgresURL)
+	if postgresURL == "" {
+		log.Fatal("DATABASE_URL environment variable is not set")
+	}
 
 	DB, err = gorm.Open(postgres.Open(postgresURL), &gorm.Config{})
-
 	if err != nil {
-		log.Fatal("failed to connect to database")
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
+
+	log.Println("Database connection established successfully")
 	return DB
 }
