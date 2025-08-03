@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/adamhaiqal/go-auth/config"
 	"github.com/adamhaiqal/go-auth/models"
@@ -82,11 +82,11 @@ func AccountSignin(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("After password verification, setting cookie")
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub":      account.ID, // Add this line
 		"username": account.Username,
 		"email":    account.Email,
+		"exp":      time.Now().Add(time.Hour * 1).Unix(),
 	})
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("SIGNIN_KEY"))) // Replace with your secret key
