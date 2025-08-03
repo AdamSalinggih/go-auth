@@ -16,7 +16,6 @@ func init() {
 	}
 
 	godotenv.Load(filepath.Join(pwd, "../.env"))
-	config.LoadEnvVariables()
 	config.ConnectToDatabase()
 }
 
