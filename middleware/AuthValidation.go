@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -27,6 +27,8 @@ func AuthenticateCookie(c *gin.Context) {
 		return
 	}
 
+	log.Print("Inside AuthenticateCookie middleware")
+
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		if float64(time.Now().Unix()) > claims["exp"].(float64) {
 			c.AbortWithStatus(http.StatusUnauthorized)
@@ -39,7 +41,10 @@ func AuthenticateCookie(c *gin.Context) {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}
 
-		fmt.Print("Successfully Logged In")
+		c.Set("accountID", user.ID)
 		c.Next()
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		c.Abort()
 	}
 }

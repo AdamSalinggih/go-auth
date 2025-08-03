@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -72,6 +73,7 @@ func AccountSignin(c *gin.Context) {
 	}
 
 	var account models.Account
+
 	if err := config.DB.Where("username = ?", signinRequest.Username).First(&account).Error; err != nil {
 		c.JSON(404, gin.H{"error": "Account not found"})
 		return
@@ -99,4 +101,40 @@ func AccountSignin(c *gin.Context) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("token", tokenString, 3600, "", "", false, true)
 	c.JSON(200, gin.H{"message": "Signin successful"})
+}
+
+func AccountHome(c *gin.Context) {
+	accountID, exists := c.Get("accountID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	var account models.Account
+	if err := config.DB.First(&account, accountID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Account not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":   "Welcome to your account",
+		"username":  account.Username,
+		"email":     account.Email,
+		"verified":  account.IsVerified,
+		"address":   account.Address,
+		"state":     account.StateCode,
+		"zip":       account.ZipCode,
+		"country":   account.Country,
+		"firstname": account.FirstName,
+		"lastname":  account.LastName,
+		"status":    http.StatusOK,
+		"timestamp": time.Now().Format(time.RFC3339),
+	})
+}
+
+func AccountSignout(c *gin.Context) {
+	log.Print("Inside AccountSignout controller")
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("token", "", -1, "", "", false, true) // Clear the cookie
+	c.JSON(http.StatusOK, gin.H{"message": "Signout successful"})
 }
