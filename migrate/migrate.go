@@ -20,8 +20,8 @@ func init() {
 }
 
 func main() {
-
 	config.DB.AutoMigrate(&models.Account{})
+	config.DB.AutoMigrate(&models.AccountMessage{})
 
 	println("Database migration completed successfully.")
 }
