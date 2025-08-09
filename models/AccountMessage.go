@@ -1,12 +1,17 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+)
 
 type AccountMessage struct {
-	gorm.Model
-	AccountID uint   `json:"account_id" gorm:"not null"`
-	Message   string `json:"message" gorm:"not null;size:500"`
-	IsRead    bool   `json:"is_read" gorm:"default:false"`
-	CreatedAt string `json:"created_at" gorm:"not null"`
-	UpdatedAt string `json:"updated_at" gorm:"not null"`
+	ID          uint64     `gorm:"primaryKey;autoIncrement"`
+	SenderID    uint64     `gorm:"not null;index"`
+	RecipientID uint64     `gorm:"not null;index"`
+	Body        string     `gorm:"type:text;not null"`
+	SentAt      time.Time  `gorm:"autoCreateTime"`
+	ReadAt      *time.Time `gorm:"index"`
+	EditedAt    *time.Time
+	IsDeleted   bool    `gorm:"default:false"`
+	ThreadID    *string `gorm:"type:uuid;index"`
 }
