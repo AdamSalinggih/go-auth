@@ -85,10 +85,10 @@ func AccountSignin(c *gin.Context) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":      account.ID, // Add this line
+		"sub":      account.ID,
 		"username": account.Username,
 		"email":    account.Email,
-		"exp":      time.Now().Add(time.Hour * 1).Unix(),
+		"exp":      time.Now().Add(time.Minute * 15).Unix(),
 	})
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("SIGNIN_KEY"))) // Replace with your secret key
