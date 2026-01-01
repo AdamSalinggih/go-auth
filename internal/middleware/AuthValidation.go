@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/adamhaiqal/go-auth/config"
-	"github.com/adamhaiqal/go-auth/models"
+	"github.com/adamhaiqal/go-auth/internal/config"
+	"github.com/adamhaiqal/go-auth/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
