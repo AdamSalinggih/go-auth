@@ -3,14 +3,14 @@ package controllers
 import (
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/adamhaiqal/go-auth/internal/config"
 	"github.com/adamhaiqal/go-auth/internal/models"
+	"github.com/adamhaiqal/go-auth/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -91,7 +91,7 @@ func AccountSignin(c *gin.Context) {
 		"exp":      time.Now().Add(time.Minute * 15).Unix(),
 	})
 
-	tokenString, err := token.SignedString([]byte(os.Getenv("SIGNIN_KEY"))) // Replace with your secret key
+	tokenString, err := token.SignedString(utils.GetJWTKey())
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to generate token"})

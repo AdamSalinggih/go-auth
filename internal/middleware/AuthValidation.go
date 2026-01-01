@@ -2,11 +2,11 @@ package middleware
 
 import (
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/adamhaiqal/go-auth/internal/config"
 	"github.com/adamhaiqal/go-auth/internal/models"
+	"github.com/adamhaiqal/go-auth/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -19,7 +19,7 @@ func AuthenticateCookie(c *gin.Context) {
 	}
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-		return []byte(os.Getenv("SIGNIN_KEY")), nil
+		return utils.GetJWTKey(), nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 	if err != nil {
 		c.AbortWithStatus(http.StatusUnauthorized)
