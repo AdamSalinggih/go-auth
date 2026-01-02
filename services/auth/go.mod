@@ -10,7 +10,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	golang.org/x/crypto v0.46.0
 	gorm.io/driver/postgres v1.6.0 // indirect
-	gorm.io/gorm v1.31.1 // indirect
+	gorm.io/gorm v1.31.1
 )
 
 replace github.com/adamhaiqal/go-auth => ../..

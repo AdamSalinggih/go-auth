@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -12,9 +13,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
-func AccountSignup(c *gin.Context) {
+func Register(c *gin.Context) {
 	var account models.Account
 
 	err := c.BindJSON(&account)
@@ -29,15 +31,24 @@ func AccountSignup(c *gin.Context) {
 		return
 	}
 
+	// Check if username or email already exists (generic error to prevent enumeration)
 	var existingAccount models.Account
-	if err := config.DB.Where("username = ?", account.Username).First(&existingAccount).Error; err == nil {
-		c.JSON(400, gin.H{"error": "Username already exists"})
+	usernameErr := config.DB.Where("username = ?", account.Username).First(&existingAccount).Error
+	emailErr := config.DB.Where("email = ?", account.Email).First(&existingAccount).Error
+
+	// If record found (no error) or if there's a database error (not just "not found")
+	if usernameErr == nil || emailErr == nil {
+		// Generic error message to prevent username/email enumeration
+		c.JSON(400, gin.H{"error": "Unable to create account"})
 		return
 	}
 
-	if err := config.DB.Where("email = ?", account.Email).First(&existingAccount).Error; err == nil {
-		c.JSON(400, gin.H{"error": "Email already exists"})
-		return
+	// If there's a database error other than "not found", log it
+	if !errors.Is(usernameErr, gorm.ErrRecordNotFound) {
+		log.Printf("Database error checking username: %v", usernameErr)
+	}
+	if !errors.Is(emailErr, gorm.ErrRecordNotFound) {
+		log.Printf("Database error checking email: %v", emailErr)
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
@@ -61,7 +72,7 @@ func AccountSignup(c *gin.Context) {
 	})
 }
 
-func AccountSignin(c *gin.Context) {
+func Login(c *gin.Context) {
 	var signinRequest struct {
 		Username string `json:"username" binding:"required"`
 		Password string `json:"password" binding:"required"`
@@ -74,11 +85,16 @@ func AccountSignin(c *gin.Context) {
 
 	var account models.Account
 
-	if err := config.DB.Where("username = ?", signinRequest.Username).First(&account).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Account not found"})
+	// Check if account exists - use generic error to prevent enumeration
+	err := config.DB.Where("username = ?", signinRequest.Username).First(&account).Error
+	if err != nil {
+		// Always return generic "Invalid credentials" regardless of whether user exists
+		// This prevents attackers from enumerating usernames
+		c.JSON(401, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
+	// Verify password - use same generic error message
 	if err := bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(signinRequest.Password)); err != nil {
 		c.JSON(401, gin.H{"error": "Invalid credentials"})
 		return
@@ -100,10 +116,10 @@ func AccountSignin(c *gin.Context) {
 
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("token", tokenString, 3600, "", "", false, true)
-	c.JSON(200, gin.H{"message": "Signin successful"})
+	c.JSON(200, gin.H{"message": "Login successful"})
 }
 
-func AccountHome(c *gin.Context) {
+func GetMe(c *gin.Context) {
 	accountID, exists := c.Get("accountID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
@@ -112,7 +128,13 @@ func AccountHome(c *gin.Context) {
 
 	var account models.Account
 	if err := config.DB.First(&account, accountID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Account not found"})
+		// Check if it's a "not found" error vs other database errors
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
+		} else {
+			log.Printf("Database error in GetMe: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		}
 		return
 	}
 
@@ -132,9 +154,8 @@ func AccountHome(c *gin.Context) {
 	})
 }
 
-func AccountSignout(c *gin.Context) {
-	log.Print("Inside AccountSignout controller")
+func Logout(c *gin.Context) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("token", "", -1, "", "", false, true) // Clear the cookie
-	c.JSON(http.StatusOK, gin.H{"message": "Signout successful"})
+	c.JSON(http.StatusOK, gin.H{"message": "Logout successful"})
 }
