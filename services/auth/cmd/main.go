@@ -20,7 +20,6 @@ func init() {
 func main() {
 	router := gin.Default()
 
-	// Authentication routes (public)
 	auth := router.Group("/api/v1/auth")
 	{
 		auth.POST("/register", controllers.Register)
@@ -28,11 +27,11 @@ func main() {
 		auth.POST("/logout", middleware.AuthenticateCookie, controllers.Logout)
 	}
 
-	// Account routes (protected)
 	account := router.Group("/api/v1/account")
 	account.Use(middleware.AuthenticateCookie)
 	{
 		account.GET("/me", controllers.GetMe)
+		account.GET("/messages", controllers.GetAccountMessages)
 	}
 
 	router.Run()
