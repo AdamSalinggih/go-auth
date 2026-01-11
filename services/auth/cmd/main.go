@@ -27,12 +27,5 @@ func main() {
 		auth.POST("/logout", middleware.AuthenticateCookie, controllers.Logout)
 	}
 
-	account := router.Group("/api/v1/account")
-	account.Use(middleware.AuthenticateCookie)
-	{
-		account.GET("/me", controllers.GetMe)
-		account.GET("/messages", controllers.GetAccountMessages)
-	}
-
 	router.Run()
 }
