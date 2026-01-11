@@ -31,19 +31,15 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// Check if username or email already exists (generic error to prevent enumeration)
 	var existingAccount models.Account
 	usernameErr := config.DB.Where("username = ?", account.Username).First(&existingAccount).Error
 	emailErr := config.DB.Where("email = ?", account.Email).First(&existingAccount).Error
 
-	// If record found (no error) or if there's a database error (not just "not found")
 	if usernameErr == nil || emailErr == nil {
-		// Generic error message to prevent username/email enumeration
 		c.JSON(400, gin.H{"error": "Unable to create account"})
 		return
 	}
 
-	// If there's a database error other than "not found", log it
 	if !errors.Is(usernameErr, gorm.ErrRecordNotFound) {
 		log.Printf("Database error checking username: %v", usernameErr)
 	}
@@ -85,16 +81,12 @@ func Login(c *gin.Context) {
 
 	var account models.Account
 
-	// Check if account exists - use generic error to prevent enumeration
 	err := config.DB.Where("username = ?", signinRequest.Username).First(&account).Error
 	if err != nil {
-		// Always return generic "Invalid credentials" regardless of whether user exists
-		// This prevents attackers from enumerating usernames
 		c.JSON(401, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	// Verify password - use same generic error message
 	if err := bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(signinRequest.Password)); err != nil {
 		c.JSON(401, gin.H{"error": "Invalid credentials"})
 		return
@@ -128,7 +120,6 @@ func GetMe(c *gin.Context) {
 
 	var account models.Account
 	if err := config.DB.First(&account, accountID).Error; err != nil {
-		// Check if it's a "not found" error vs other database errors
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
 		} else {
@@ -156,6 +147,6 @@ func GetMe(c *gin.Context) {
 
 func Logout(c *gin.Context) {
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("token", "", -1, "", "", false, true) // Clear the cookie
+	c.SetCookie("token", "", -1, "", "", false, true)
 	c.JSON(http.StatusOK, gin.H{"message": "Logout successful"})
 }
