@@ -4,37 +4,37 @@
 
 ### 1. **Security Vulnerabilities**
 
-#### ~~JWT Middleware - Database Lookup (Not Stateless)~~ ✅ **FIXED**
+#### JWT Middleware - Database Lookup (Not Stateless)
 **Location:** `services/auth/internal/middleware/AuthValidation.go:34-39`
-- ~~**Issue:** Database query on every authenticated request violates JWT stateless principle~~
-- ~~**Impact:** Performance degradation, scalability issues, unnecessary DB load~~
-- ~~**Fix:** Extract accountID from JWT claims directly (no DB lookup~~
+- **Issue:** Database query on every authenticated request violates JWT stateless principle
+- **Impact:** Performance degradation, scalability issues, unnecessary DB load
+- **Fix:** Extract accountID from JWT claims directly (no DB lookup
 
-#### ~~Missing Return Statement~~ ✅ **FIXED**
+#### Missing Return Statement
 **Location:** `services/auth/internal/middleware/AuthValidation.go:31`
-- ~~**Issue:** Missing `return` after expiration check~~
-- ~~**Impact:** Code continues execution even when token is expired~~
-- ~~**Fix:** Add `return` statement~~
+- **Issue:** Missing `return` after expiration check
+- **Impact:** Code continues execution even when token is expired
+- **Fix:** Add `return` statement
 
 #### Cookie Security
-**Location:** `services/auth/internal/controllers/authController.go:102`
+**Location:** `services/auth/internal/controllers/accountController.go:102`
 - **Issue:** Cookie not marked as `Secure` (should be `true` in production)
 - **Impact:** Cookies can be sent over HTTP, vulnerable to MITM attacks
 - **Fix:** Set `Secure: true` when not in development
 
-#### ~~Information Leakage~~ ✅ **FIXED**
+#### Information Leakage
 **Location:** Multiple controllers
-- ~~**Issue:** Error messages reveal too much (e.g., "Account not found" vs "Invalid credentials")~~
-- ~~**Impact:** Attackers can enumerate usernames/emails~~
-- ~~**Fix:** Use generic error messages for authentication failures~~
+- **Issue:** Error messages reveal too much (e.g., "Account not found" vs "Invalid credentials")
+- **Impact:** Attackers can enumerate usernames/emails
+- **Fix:** Use generic error messages for authentication failures
 
 ### 2. **Error Handling**
 
-#### ~~Database Errors Not Handled Properly~~ ✅ **FIXED**
-**Location:** `services/auth/internal/controllers/authController.go:33, 38`
-- ~~**Issue:** Using `err == nil` to check if record exists (should check `errors.Is(err, gorm.ErrRecordNotFound)`)~~
-- ~~**Impact:** Other database errors are ignored~~
-- ~~**Fix:** Properly check for `gorm.ErrRecordNotFound`~~
+#### Database Errors Not Handled Properly
+**Location:** `services/auth/internal/controllers/accountController.go:33, 38`
+- **Issue:** Using `err == nil` to check if record exists (should check `errors.Is(err, gorm.ErrRecordNotFound)`)
+- **Impact:** Other database errors are ignored
+- **Fix:** Properly check for `gorm.ErrRecordNotFound`
 
 #### No Error Logging
 - **Issue:** Errors are returned to client but not logged
@@ -63,18 +63,18 @@
 
 ### 4. **Code Quality**
 
-#### ~~Missing Return Statements~~ ✅ **FIXED**
+#### Missing Return Statements
 **Location:** `services/auth/internal/middleware/AuthValidation.go:31, 38`
-- ~~Missing `return` statements after `AbortWithStatus`~~
+- Missing `return` statements after `AbortWithStatus`
 
 #### Inconsistent Error Responses
 - Some use `gin.H{"error": "..."}`, others use `gin.H{"message": "..."}`
 - **Fix:** Standardize error response format
 
-#### ~~Type Assertion Without Safety Check~~ ✅ **FIXED**
+#### Type Assertion Without Safety Check
 **Location:** `services/auth/internal/middleware/AuthValidation.go:30`
-- ~~**Issue:** `claims["exp"].(float64)` can panic if type is wrong~~
-- ~~**Fix:** Use type assertion with ok check~~
+- **Issue:** `claims["exp"].(float64)` can panic if type is wrong
+- **Fix:** Use type assertion with ok check
 
 ### 5. **Project Structure**
 
@@ -162,11 +162,11 @@
 - **Impact:** Developers don't know required variables
 - **Fix:** Add `.env.example` with all required vars
 
-## 📊 Production Readiness Score: 5/10 ⬆️ (Improved from 3/10)
+## 📊 Production Readiness Score: 3/10
 
 ### Breakdown:
 - ✅ **Structure:** 4/10 (inconsistent but workable)
-- ⚠️ **Security:** 4/10 (improved - JWT middleware fixed, information leakage fixed, cookie security remains)
+- ❌ **Security:** 2/10 (critical vulnerabilities)
 - ❌ **Error Handling:** 2/10 (inadequate)
 - ❌ **Testing:** 0/10 (no tests)
 - ❌ **Observability:** 1/10 (no logging/metrics)
@@ -176,16 +176,16 @@
 ## 🎯 Recommended Action Plan
 
 ### Phase 1: Critical Fixes (Before Any Production Deployment)
-1. ~~Fix JWT middleware (remove DB lookup, fix missing returns)~~ ✅ **DONE**
+1. Fix JWT middleware (remove DB lookup, fix missing returns)
 2. Fix cookie security settings
-3. ~~Fix error handling (proper DB error checks)~~ ✅ **DONE**
+3. Fix error handling (proper DB error checks)
 4. Add environment variable validation
 5. Configure database connection pooling
 6. Add graceful shutdown
 
 ### Phase 2: Security & Reliability
 1. Add rate limiting
-2. ~~Fix information leakage in error messages~~ ✅ **DONE**
+2. Fix information leakage in error messages
 3. Add request timeouts
 4. Implement proper logging
 5. Add health check endpoint
@@ -206,7 +206,7 @@
 
 ## 💡 Quick Wins (Can Do Now)
 
-1. ~~**Fix missing return statements** (5 min)~~ ✅ **DONE**
+1. **Fix missing return statements** (5 min)
 2. **Add health check endpoint** (10 min)
 3. **Add .env.example** (5 min)
 4. **Fix cookie Secure flag** (2 min)

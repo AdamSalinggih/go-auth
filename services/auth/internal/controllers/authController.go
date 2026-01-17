@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/adamhaiqal/go-auth/pkg/config"
 	"github.com/adamhaiqal/go-auth/pkg/models"
 	"github.com/adamhaiqal/go-auth/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -16,7 +15,15 @@ import (
 	"gorm.io/gorm"
 )
 
-func Register(c *gin.Context) {
+type AuthController struct {
+	DB *gorm.DB
+}
+
+func NewAuthController(db *gorm.DB) *AuthController {
+	return &AuthController{DB: db}
+}
+
+func (a *AuthController) Register(c *gin.Context) {
 	var account models.Account
 
 	err := c.BindJSON(&account)
@@ -32,8 +39,8 @@ func Register(c *gin.Context) {
 	}
 
 	var existingAccount models.Account
-	usernameErr := config.DB.Where("username = ?", account.Username).First(&existingAccount).Error
-	emailErr := config.DB.Where("email = ?", account.Email).First(&existingAccount).Error
+	usernameErr := a.DB.Where("username = ?", account.Username).First(&existingAccount).Error
+	emailErr := a.DB.Where("email = ?", account.Email).First(&existingAccount).Error
 
 	if usernameErr == nil || emailErr == nil {
 		c.JSON(400, gin.H{"error": "Unable to create account"})
@@ -56,7 +63,7 @@ func Register(c *gin.Context) {
 
 	account.IsVerified = false
 
-	if err := config.DB.Create(&account).Error; err != nil {
+	if err := a.DB.Create(&account).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Failed to create account"})
 		return
 	}
@@ -68,7 +75,7 @@ func Register(c *gin.Context) {
 	})
 }
 
-func Login(c *gin.Context) {
+func (a *AuthController) Login(c *gin.Context) {
 	var signinRequest struct {
 		Username string `json:"username" binding:"required"`
 		Password string `json:"password" binding:"required"`
@@ -81,7 +88,7 @@ func Login(c *gin.Context) {
 
 	var account models.Account
 
-	err := config.DB.Where("username = ?", signinRequest.Username).First(&account).Error
+	err := a.DB.Where("username = ?", signinRequest.Username).First(&account).Error
 	if err != nil {
 		c.JSON(401, gin.H{"error": "Invalid credentials"})
 		return
@@ -111,7 +118,7 @@ func Login(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "Login successful"})
 }
 
-func GetMe(c *gin.Context) {
+func (a *AuthController) GetMe(c *gin.Context) {
 	accountID, exists := c.Get("accountID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
@@ -119,7 +126,7 @@ func GetMe(c *gin.Context) {
 	}
 
 	var account models.Account
-	if err := config.DB.First(&account, accountID).Error; err != nil {
+	if err := a.DB.First(&account, accountID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
 		} else {

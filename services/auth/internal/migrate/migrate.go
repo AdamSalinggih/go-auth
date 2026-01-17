@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/adamhaiqal/go-auth/pkg/config"
+	"github.com/adamhaiqal/go-auth/pkg/database"
 	"github.com/adamhaiqal/go-auth/pkg/models"
 	"github.com/joho/godotenv"
 )
@@ -16,12 +16,12 @@ func init() {
 	}
 
 	godotenv.Load(filepath.Join(pwd, "../.env"))
-	config.ConnectToDatabase()
+	database.Connect()
 }
 
 func main() {
-	config.DB.AutoMigrate(&models.Account{})
-	config.DB.AutoMigrate(&models.AccountMessage{})
+	database.DB.AutoMigrate(&models.Account{})
+	database.DB.AutoMigrate(&models.AccountMessage{})
 
 	println("Database migration completed successfully.")
 }
