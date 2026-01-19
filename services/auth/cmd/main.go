@@ -8,14 +8,7 @@ import (
 	"github.com/adamhaiqal/go-auth/services/auth/internal/controllers"
 	"github.com/adamhaiqal/go-auth/services/auth/internal/middleware"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
-
-func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, using environment variables")
-	}
-}
 
 func main() {
 	router := gin.Default()
